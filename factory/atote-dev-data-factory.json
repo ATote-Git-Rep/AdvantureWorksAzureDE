@@ -1,0 +1,9 @@
+{
+	"name": "atote-dev-data-factory",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7dd21db2-245f-4a09-b393-f2b8c4bab927",
+		"tenantId": "b684b0f0-a3c3-4e1a-9024-4c7f27fdfa15"
+	}
+}
