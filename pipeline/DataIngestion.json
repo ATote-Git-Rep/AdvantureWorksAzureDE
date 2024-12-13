@@ -114,7 +114,17 @@
 							"outputs": [
 								{
 									"referenceName": "GenericParquet",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"Container_Name": {
+											"value": "@pipeline().parameters.Lake_Container_Name",
+											"type": "Expression"
+										},
+										"Container_Path": {
+											"value": "@pipeline().parameters.Lake_File_Path",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
