@@ -56,6 +56,10 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadIngestionSheet').output",
+						"type": "Expression"
+					},
 					"activities": [
 						{
 							"name": "Ingest Entity Full Load",
