@@ -164,6 +164,12 @@
 			},
 			"Ingestion_type": {
 				"type": "string"
+			},
+			"Lake_Container_Name": {
+				"type": "string"
+			},
+			"Lake_File_Path": {
+				"type": "string"
 			}
 		},
 		"variables": {
