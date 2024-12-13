@@ -1,0 +1,20 @@
+{
+	"name": "OnpremSQLTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnPremSQLServerGenric",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SQLSchema": {
+				"type": "string"
+			},
+			"SQLTablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}
