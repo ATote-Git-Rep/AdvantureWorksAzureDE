@@ -119,6 +119,9 @@
 			},
 			"Ingestion_type": {
 				"type": "string"
+			},
+			"SourceDB": {
+				"type": "string"
 			}
 		},
 		"variables": {
