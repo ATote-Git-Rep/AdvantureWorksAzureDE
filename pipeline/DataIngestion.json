@@ -58,7 +58,7 @@
 				"typeProperties": {
 					"activities": [
 						{
-							"name": "Ingest Entity",
+							"name": "Ingest Entity Full Load",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -80,7 +80,17 @@
 							"inputs": [
 								{
 									"referenceName": "OnpremSQLTable",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"SQLSchema": {
+											"value": "@item().Schema_Name",
+											"type": "Expression"
+										},
+										"SQLTablename": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
