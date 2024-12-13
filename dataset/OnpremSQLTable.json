@@ -3,7 +3,10 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "OnPremSQLServerGenric",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBName": "AdventureWorks2019"
+			}
 		},
 		"parameters": {
 			"SQLSchema": {
