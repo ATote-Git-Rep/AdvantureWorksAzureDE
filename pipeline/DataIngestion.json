@@ -42,6 +42,49 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": []
+			},
+			{
+				"name": "FailEmail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
+					"body": {
+						"ADF_Name": "dafd",
+						"ADF_RunID": "asda",
+						"Error_Message": "asdad",
+						"PipelineID": "asdad"
+					}
+				}
 			}
 		],
 		"parameters": {
