@@ -11,6 +11,9 @@
 			},
 			"Container_Path": {
 				"type": "string"
+			},
+			"File_name": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
