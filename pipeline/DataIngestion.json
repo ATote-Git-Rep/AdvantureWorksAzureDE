@@ -85,8 +85,7 @@
 										"type": "AzureBlobFSWriteSettings"
 									},
 									"formatSettings": {
-										"type": "ParquetWriteSettings",
-										"maxRowsPerFile": 1000
+										"type": "ParquetWriteSettings"
 									}
 								},
 								"enableStaging": false,
