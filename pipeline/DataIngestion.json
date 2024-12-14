@@ -126,7 +126,8 @@
 										"Container_Path": {
 											"value": "@pipeline().parameters.Lake_File_Path",
 											"type": "Expression"
-										}
+										},
+										"File_name": "@item().Table_Name"
 									}
 								}
 							]
