@@ -22,7 +22,10 @@
 					"value": "@dataset().Container_Path",
 					"type": "Expression"
 				},
-				"folderPath": "landing",
+				"folderPath": {
+					"value": "@dataset().Container_Path",
+					"type": "Expression"
+				},
 				"fileSystem": {
 					"value": "@dataset().Container_Name",
 					"type": "Expression"
