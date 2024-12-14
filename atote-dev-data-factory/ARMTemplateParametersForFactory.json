@@ -8,11 +8,38 @@
 		"AzureDataLakeStorage_LS_accountKey": {
 			"value": ""
 		},
+		"AzureDatabricksDeltaLake_LS_accessToken": {
+			"value": ""
+		},
+		"OnPremSQLServerGenric_password": {
+			"value": ""
+		},
+		"OnPremSQLServer_LS_password": {
+			"value": ""
+		},
 		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 			"value": "https://ucstorageaccatote.dfs.core.windows.net/"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://atotedekeyvault.vault.azure.net/"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_server": {
+			"value": "localhost,1436"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_database": {
+			"value": "@{linkedService().DBName}"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_userName": {
+			"value": "sa"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_server": {
+			"value": "localhost,1436"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_database": {
+			"value": "AdventureWorks2019"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_userName": {
+			"value": "sa"
 		}
 	}
 }

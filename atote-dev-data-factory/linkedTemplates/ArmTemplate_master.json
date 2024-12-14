@@ -11,6 +11,18 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage_LS'"
 		},
+		"AzureDatabricksDeltaLake_LS_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'AzureDatabricksDeltaLake_LS'"
+		},
+		"OnPremSQLServerGenric_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQLServerGenric'"
+		},
+		"OnPremSQLServer_LS_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQLServer_LS'"
+		},
 		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://ucstorageaccatote.dfs.core.windows.net/"
@@ -18,6 +30,30 @@
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://atotedekeyvault.vault.azure.net/"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost,1436"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().DBName}"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost,1436"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorks2019"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
 		},
 		"containerUri": {
 			"type": "string",
@@ -49,11 +85,38 @@
 					"AzureDataLakeStorage_LS_accountKey": {
 						"value": "[parameters('AzureDataLakeStorage_LS_accountKey')]"
 					},
+					"AzureDatabricksDeltaLake_LS_accessToken": {
+						"value": "[parameters('AzureDatabricksDeltaLake_LS_accessToken')]"
+					},
+					"OnPremSQLServerGenric_password": {
+						"value": "[parameters('OnPremSQLServerGenric_password')]"
+					},
+					"OnPremSQLServer_LS_password": {
+						"value": "[parameters('OnPremSQLServer_LS_password')]"
+					},
 					"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 						"value": "[parameters('AzureDataLakeStorage_LS_properties_typeProperties_url')]"
 					},
 					"AzureKeyVault1_properties_typeProperties_baseUrl": {
 						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"OnPremSQLServerGenric_properties_typeProperties_server": {
+						"value": "[parameters('OnPremSQLServerGenric_properties_typeProperties_server')]"
+					},
+					"OnPremSQLServerGenric_properties_typeProperties_database": {
+						"value": "[parameters('OnPremSQLServerGenric_properties_typeProperties_database')]"
+					},
+					"OnPremSQLServerGenric_properties_typeProperties_userName": {
+						"value": "[parameters('OnPremSQLServerGenric_properties_typeProperties_userName')]"
+					},
+					"OnPremSQLServer_LS_properties_typeProperties_server": {
+						"value": "[parameters('OnPremSQLServer_LS_properties_typeProperties_server')]"
+					},
+					"OnPremSQLServer_LS_properties_typeProperties_database": {
+						"value": "[parameters('OnPremSQLServer_LS_properties_typeProperties_database')]"
+					},
+					"OnPremSQLServer_LS_properties_typeProperties_userName": {
+						"value": "[parameters('OnPremSQLServer_LS_properties_typeProperties_userName')]"
 					}
 				}
 			},

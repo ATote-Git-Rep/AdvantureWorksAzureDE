@@ -11,6 +11,18 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage_LS'"
 		},
+		"AzureDatabricksDeltaLake_LS_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'AzureDatabricksDeltaLake_LS'"
+		},
+		"OnPremSQLServerGenric_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQLServerGenric'"
+		},
+		"OnPremSQLServer_LS_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQLServer_LS'"
+		},
 		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://ucstorageaccatote.dfs.core.windows.net/"
@@ -18,6 +30,30 @@
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://atotedekeyvault.vault.azure.net/"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost,1436"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().DBName}"
+		},
+		"OnPremSQLServerGenric_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost,1436"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorks2019"
+		},
+		"OnPremSQLServer_LS_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sa"
 		}
 	},
 	"variables": {
@@ -70,6 +106,129 @@
 							},
 							"firstRowOnly": false
 						}
+					},
+					{
+						"name": "Ingest Each Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ReadIngestionSheet",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('ReadIngestionSheet').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Ingest Entity Full Load",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "OnpremSQLTable",
+											"type": "DatasetReference",
+											"parameters": {
+												"SQLSchema": {
+													"value": "@item().Schema_Name",
+													"type": "Expression"
+												},
+												"SQLTablename": {
+													"value": "@item().Table_Name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "GenericParquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container_Name": {
+													"value": "@pipeline().parameters.Lake_Container_Name",
+													"type": "Expression"
+												},
+												"Container_Path": {
+													"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
+													"type": "Expression"
+												},
+												"File_name": "@item().Table_Name"
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "FailEmail",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ReadIngestionSheet",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
+							"body": {
+								"ADF_Name": "dafd",
+								"ADF_RunID": "asda",
+								"Error_Message": "asdad",
+								"PipelineID": "asdad"
+							}
+						}
 					}
 				],
 				"policy": {
@@ -87,6 +246,12 @@
 					},
 					"Ingestion_type": {
 						"type": "string"
+					},
+					"Lake_Container_Name": {
+						"type": "string"
+					},
+					"Lake_File_Path": {
+						"type": "string"
 					}
 				},
 				"variables": {
@@ -98,7 +263,55 @@
 				"lastPublishTime": "2024-12-13T10:23:02Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/GenricCSVRead')]"
+				"[concat(variables('factoryId'), '/datasets/GenricCSVRead')]",
+				"[concat(variables('factoryId'), '/datasets/OnpremSQLTable')]",
+				"[concat(variables('factoryId'), '/datasets/GenericParquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GenericParquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage_LS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Container_Name": {
+						"type": "string"
+					},
+					"Container_Path": {
+						"type": "string"
+					},
+					"File_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat(dataset().File_name, '.parquet')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().Container_Path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().Container_Name",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage_LS')]"
 			]
 		},
 		{
@@ -144,6 +357,44 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/OnpremSQLTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "OnPremSQLServerGenric",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"DBName": "AdventureWorks2019"
+					}
+				},
+				"parameters": {
+					"SQLSchema": {
+						"type": "string"
+					},
+					"SQLTablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SQLSchema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().SQLTablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/OnPremSQLServerGenric')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorage_LS')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -161,6 +412,24 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricksDeltaLake_LS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLake",
+				"typeProperties": {
+					"domain": "https://adb-3249081727790063.3.azuredatabricks.net",
+					"clusterId": "1210-131254-pzzv65th",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDatabricksDeltaLake_LS_accessToken')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureKeyVault1')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -172,6 +441,67 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremSQLServerGenric')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('OnPremSQLServerGenric_properties_typeProperties_server')]",
+					"database": "[parameters('OnPremSQLServerGenric_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('OnPremSQLServerGenric_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('OnPremSQLServerGenric_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "DesktopIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/DesktopIR')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremSQLServer_LS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('OnPremSQLServer_LS_properties_typeProperties_server')]",
+					"database": "[parameters('OnPremSQLServer_LS_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('OnPremSQLServer_LS_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('OnPremSQLServer_LS_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "DesktopIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/DesktopIR')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/DesktopIR')]",
