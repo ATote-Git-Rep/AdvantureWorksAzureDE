@@ -57,7 +57,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('ReadIngestionSheet').output",
+						"value": "@activity('ReadIngestionSheet').output.value",
 						"type": "Expression"
 					},
 					"activities": [
