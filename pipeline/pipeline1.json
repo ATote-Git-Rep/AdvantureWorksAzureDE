@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "temp1",
 					"value": {
-						"value": "@string(utcNow())",
+						"value": "@string(utcNow('yyyy-MM-dd HH:mm:ss'))",
 						"type": "Expression"
 					}
 				}
