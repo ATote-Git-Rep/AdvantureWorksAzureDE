@@ -62,75 +62,166 @@
 					},
 					"activities": [
 						{
-							"name": "Ingest Entity Full Load",
-							"type": "Copy",
+							"name": "FullLoad Or Delta",
+							"type": "IfCondition",
 							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
 							"userProperties": [],
 							"typeProperties": {
-								"source": {
-									"type": "SqlServerSource",
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
+								"expression": {
+									"value": "@equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload' )",
+									"type": "Expression"
 								},
-								"sink": {
-									"type": "ParquetSink",
-									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
-									},
-									"formatSettings": {
-										"type": "ParquetWriteSettings"
-									}
-								},
-								"enableStaging": false,
-								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "OnpremSQLTable",
-									"type": "DatasetReference",
-									"parameters": {
-										"SQLSchema": {
-											"value": "@item().Schema_Name",
-											"type": "Expression"
+								"ifFalseActivities": [
+									{
+										"name": "Ingest Entity Delta Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
 										},
-										"SQLTablename": {
-											"value": "@item().Table_Name",
-											"type": "Expression"
-										}
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "GenericParquet",
-									"type": "DatasetReference",
-									"parameters": {
-										"Container_Name": {
-											"value": "@pipeline().parameters.Lake_Container_Name",
-											"type": "Expression"
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, 'where ' )",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
 										},
-										"Container_Path": {
-											"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
-											"type": "Expression"
-										},
-										"File_name": "@item().Table_Name"
+										"inputs": [
+											{
+												"referenceName": "OnpremSQLTable",
+												"type": "DatasetReference",
+												"parameters": {
+													"SQLSchema": {
+														"value": "@item().Schema_Name",
+														"type": "Expression"
+													},
+													"SQLTablename": {
+														"value": "@item().Table_Name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
+														"type": "Expression"
+													},
+													"File_name": "@item().Table_Name"
+												}
+											}
+										]
 									}
-								}
-							]
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Ingest Entity Full Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "OnpremSQLTable",
+												"type": "DatasetReference",
+												"parameters": {
+													"SQLSchema": {
+														"value": "@item().Schema_Name",
+														"type": "Expression"
+													},
+													"SQLTablename": {
+														"value": "@item().Table_Name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
+														"type": "Expression"
+													},
+													"File_name": "@item().Table_Name"
+												}
+											}
+										]
+									}
+								]
+							}
 						}
 					]
 				}
