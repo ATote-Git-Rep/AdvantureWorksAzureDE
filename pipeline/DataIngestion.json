@@ -88,7 +88,7 @@
 											"source": {
 												"type": "SqlServerSource",
 												"sqlReaderQuery": {
-													"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where ModifiedDate =', '\"', pipeline().parameters.Ingestion_date, '\"')",
+													"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
 													"type": "Expression"
 												},
 												"queryTimeout": "02:00:00",
