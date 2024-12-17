@@ -62,92 +62,22 @@
 					},
 					"activities": [
 						{
-							"name": "FullLoad Or Delta",
+							"name": "FullLoad",
 							"type": "IfCondition",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Check if Table is Empty",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload' )",
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstrow'))",
 									"type": "Expression"
 								},
-								"ifFalseActivities": [
-									{
-										"name": "Ingest Entity Delta Load",
-										"type": "Copy",
-										"dependsOn": [],
-										"policy": {
-											"timeout": "0.12:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"source": {
-												"type": "SqlServerSource",
-												"sqlReaderQuery": {
-													"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
-													"type": "Expression"
-												},
-												"queryTimeout": "02:00:00",
-												"partitionOption": "None"
-											},
-											"sink": {
-												"type": "ParquetSink",
-												"storeSettings": {
-													"type": "AzureBlobFSWriteSettings"
-												},
-												"formatSettings": {
-													"type": "ParquetWriteSettings",
-													"maxRowsPerFile": 100000
-												}
-											},
-											"enableStaging": false,
-											"translator": {
-												"type": "TabularTranslator",
-												"typeConversion": true,
-												"typeConversionSettings": {
-													"allowDataTruncation": true,
-													"treatBooleanAsNumber": false
-												}
-											}
-										},
-										"inputs": [
-											{
-												"referenceName": "OnpremSQLTable",
-												"type": "DatasetReference",
-												"parameters": {
-													"SQLSchema": {
-														"value": "@item().Schema_Name",
-														"type": "Expression"
-													},
-													"SQLTablename": {
-														"value": "@item().Table_Name",
-														"type": "Expression"
-													}
-												}
-											}
-										],
-										"outputs": [
-											{
-												"referenceName": "GenericParquet",
-												"type": "DatasetReference",
-												"parameters": {
-													"Container_Name": {
-														"value": "@pipeline().parameters.Lake_Container_Name",
-														"type": "Expression"
-													},
-													"Container_Path": {
-														"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
-														"type": "Expression"
-													}
-												}
-											}
-										]
-									}
-								],
 								"ifTrueActivities": [
 									{
 										"name": "Ingest Entity Full Load",
@@ -243,15 +173,148 @@
 								},
 								"dataset": {
 									"referenceName": "OnpremSQLTable",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"SQLSchema": "@item().Schema_Name",
+										"SQLTablename": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										}
+									}
 								}
 							}
 						},
 						{
 							"name": "If Condition1",
 							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Check if Table is Empty Delta",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstrow'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Ingest Entity Delta Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings",
+													"maxRowsPerFile": 100000
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "OnpremSQLTable",
+												"type": "DatasetReference",
+												"parameters": {
+													"SQLSchema": {
+														"value": "@item().Schema_Name",
+														"type": "Expression"
+													},
+													"SQLTablename": {
+														"value": "@item().Table_Name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "Check if Table is Empty Delta",
+							"type": "Lookup",
 							"dependsOn": [],
-							"userProperties": []
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "OnpremSQLTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"SQLSchema": "@item().Schema_Name",
+										"SQLTablename": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										}
+									}
+								},
+								"firstRowOnly": true
+							}
 						}
 					]
 				}
