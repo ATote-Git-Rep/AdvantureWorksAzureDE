@@ -23,7 +23,10 @@
 							"Container_Path": "landing"
 						}
 					},
-					"fieldList": [],
+					"fieldList": [
+						"exists",
+						"itemType"
+					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
 						"enablePartitionDiscovery": false
