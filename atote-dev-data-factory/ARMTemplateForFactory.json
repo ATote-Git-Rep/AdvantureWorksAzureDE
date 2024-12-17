@@ -126,8 +126,190 @@
 							},
 							"activities": [
 								{
-									"name": "Ingest Entity Full Load",
-									"type": "Copy",
+									"name": "FullLoad",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Check if Table is Empty",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstRow'))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Ingest Entity Full Load",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Delete Entity From lake",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings",
+															"maxRowsPerFile": 100000
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "OnpremSQLTable",
+														"type": "DatasetReference",
+														"parameters": {
+															"SQLSchema": {
+																"value": "@item().Schema_Name",
+																"type": "Expression"
+															},
+															"SQLTablename": {
+																"value": "@item().Table_Name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/',string(utcNow('yyyy-MM-dd')), '/' )",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											},
+											{
+												"name": "Remove Entity Before Full Load",
+												"type": "GetMetadata",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)\n",
+																"type": "Expression"
+															}
+														}
+													},
+													"fieldList": [
+														"exists",
+														"itemName",
+														"itemType"
+													],
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"enablePartitionDiscovery": false
+													},
+													"formatSettings": {
+														"type": "ParquetReadSettings"
+													}
+												}
+											},
+											{
+												"name": "Delete Entity From lake",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Remove Entity Before Full Load",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+																"type": "Expression"
+															}
+														}
+													},
+													"enableLogging": false,
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"enablePartitionDiscovery": false
+													}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "Check if Table is Empty",
+									"type": "Lookup",
 									"dependsOn": [],
 									"policy": {
 										"timeout": "0.12:00:00",
@@ -143,58 +325,150 @@
 											"queryTimeout": "02:00:00",
 											"partitionOption": "None"
 										},
-										"sink": {
-											"type": "ParquetSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											},
-											"formatSettings": {
-												"type": "ParquetWriteSettings"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
+										"dataset": {
 											"referenceName": "OnpremSQLTable",
 											"type": "DatasetReference",
 											"parameters": {
-												"SQLSchema": {
-													"value": "@item().Schema_Name",
-													"type": "Expression"
-												},
+												"SQLSchema": "@item().Schema_Name",
 												"SQLTablename": {
 													"value": "@item().Table_Name",
 													"type": "Expression"
 												}
 											}
 										}
-									],
-									"outputs": [
+									}
+								},
+								{
+									"name": "Delta If Condition",
+									"type": "IfCondition",
+									"dependsOn": [
 										{
-											"referenceName": "GenericParquet",
+											"activity": "Check if Table is Empty Delta",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), contains(activity('Check if Table is Empty Delta').output,'firstRow'))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Ingest Entity Delta Load",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"sqlReaderQuery": {
+															"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings",
+															"maxRowsPerFile": 100000
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "OnpremSQLTable",
+														"type": "DatasetReference",
+														"parameters": {
+															"SQLSchema": {
+																"value": "@item().Schema_Name",
+																"type": "Expression"
+															},
+															"SQLTablename": {
+																"value": "@item().Table_Name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/', pipeline().parameters.Ingestion_date, '/' )",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								},
+								{
+									"name": "Check if Table is Empty Delta",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "@concat('Select * from ', item().Schema_Name, '.', item().Table_Name, ' where CAST( ModifiedDate AS DATE) =', '''', pipeline().parameters.Ingestion_date, '''')",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "OnpremSQLTable",
 											"type": "DatasetReference",
 											"parameters": {
-												"Container_Name": {
-													"value": "@pipeline().parameters.Lake_Container_Name",
+												"SQLSchema": "@item().Schema_Name",
+												"SQLTablename": {
+													"value": "@item().Table_Name",
 													"type": "Expression"
-												},
-												"Container_Path": {
-													"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
-													"type": "Expression"
-												},
-												"File_name": "@item().Table_Name"
+												}
 											}
-										}
-									]
+										},
+										"firstRowOnly": true
+									}
 								}
 							]
 						}
@@ -269,6 +543,61 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "GenericParquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"Container_Name": "advbronzedatalake",
+									"Container_Path": "landing"
+								}
+							},
+							"fieldList": [
+								"exists",
+								"itemType"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "ParquetReadSettings"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"temp1": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/GenericParquet')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/GenericParquet')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -283,9 +612,6 @@
 					},
 					"Container_Path": {
 						"type": "string"
-					},
-					"File_name": {
-						"type": "string"
 					}
 				},
 				"annotations": [],
@@ -293,10 +619,6 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@concat(dataset().File_name, '.parquet')",
-							"type": "Expression"
-						},
 						"folderPath": {
 							"value": "@dataset().Container_Path",
 							"type": "Expression"
