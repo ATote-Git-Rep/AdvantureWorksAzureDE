@@ -1,0 +1,34 @@
+{
+	"name": "GenericParquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage_LS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Container_Name": {
+				"type": "string"
+			},
+			"Container_Path": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().Container_Path",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().Container_Name",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

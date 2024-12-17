@@ -1,0 +1,33 @@
+{
+	"name": "OnpremSQLTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnPremSQLServerGenric",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBName": "AdventureWorks2019"
+			}
+		},
+		"parameters": {
+			"SQLSchema": {
+				"type": "string"
+			},
+			"SQLTablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SQLSchema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().SQLTablename",
+				"type": "Expression"
+			}
+		}
+	}
+}
