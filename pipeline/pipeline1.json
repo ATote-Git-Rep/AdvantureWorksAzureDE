@@ -3,19 +3,33 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Set variable1",
-				"type": "SetVariable",
+				"name": "Get Metadata1",
+				"type": "GetMetadata",
 				"dependsOn": [],
 				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "temp1",
-					"value": {
-						"value": "@concat(string(utcNow('yyyy-MM-dd')), '-',string(pipeline().RunId), '.parquet')",
-						"type": "Expression"
+					"dataset": {
+						"referenceName": "GenericParquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"Container_Name": "advbronzedatalake",
+							"Container_Path": "landing"
+						}
+					},
+					"fieldList": [],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "ParquetReadSettings"
 					}
 				}
 			}
