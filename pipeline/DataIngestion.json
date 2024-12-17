@@ -101,7 +101,7 @@
 												},
 												"formatSettings": {
 													"type": "ParquetWriteSettings",
-													"maxRowsPerFile": 100
+													"maxRowsPerFile": 100000
 												}
 											},
 											"enableStaging": false,
