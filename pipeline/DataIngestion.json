@@ -185,7 +185,7 @@
 							}
 						},
 						{
-							"name": "If Condition1",
+							"name": "Delta If Condition",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -198,7 +198,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty Delta').output,'firstrow'))",
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), contains(activity('Check if Table is Empty Delta').output,'firstrow'))",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
