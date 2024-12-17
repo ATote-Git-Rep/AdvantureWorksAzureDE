@@ -277,7 +277,7 @@
 														"type": "Expression"
 													},
 													"Container_Path": {
-														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/', pipeline().parameters.Ingestion_date, '/' )",
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/', string(pipeline().parameters.Ingestion_date), '/' )",
 														"type": "Expression"
 													}
 												}
