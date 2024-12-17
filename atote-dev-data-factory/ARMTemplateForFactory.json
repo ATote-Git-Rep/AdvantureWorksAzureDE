@@ -146,14 +146,7 @@
 											{
 												"name": "Ingest Entity Full Load",
 												"type": "Copy",
-												"dependsOn": [
-													{
-														"activity": "Delete Entity From lake",
-														"dependencyConditions": [
-															"Succeeded"
-														]
-													}
-												],
+												"dependsOn": [],
 												"policy": {
 													"timeout": "0.12:00:00",
 													"retry": 0,
@@ -220,89 +213,6 @@
 														}
 													}
 												]
-											},
-											{
-												"name": "Remove Entity Before Full Load",
-												"type": "GetMetadata",
-												"dependsOn": [],
-												"policy": {
-													"timeout": "0.12:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
-													"secureOutput": false,
-													"secureInput": false
-												},
-												"userProperties": [],
-												"typeProperties": {
-													"dataset": {
-														"referenceName": "GenericParquet",
-														"type": "DatasetReference",
-														"parameters": {
-															"Container_Name": {
-																"value": "@pipeline().parameters.Lake_Container_Name",
-																"type": "Expression"
-															},
-															"Container_Path": {
-																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)\n",
-																"type": "Expression"
-															}
-														}
-													},
-													"fieldList": [
-														"exists",
-														"itemName",
-														"itemType"
-													],
-													"storeSettings": {
-														"type": "AzureBlobFSReadSettings",
-														"enablePartitionDiscovery": false
-													},
-													"formatSettings": {
-														"type": "ParquetReadSettings"
-													}
-												}
-											},
-											{
-												"name": "Delete Entity From lake",
-												"type": "Delete",
-												"dependsOn": [
-													{
-														"activity": "Remove Entity Before Full Load",
-														"dependencyConditions": [
-															"Succeeded"
-														]
-													}
-												],
-												"policy": {
-													"timeout": "0.12:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
-													"secureOutput": false,
-													"secureInput": false
-												},
-												"userProperties": [],
-												"typeProperties": {
-													"dataset": {
-														"referenceName": "GenericParquet",
-														"type": "DatasetReference",
-														"parameters": {
-															"Container_Name": {
-																"value": "@pipeline().parameters.Lake_Container_Name",
-																"type": "Expression"
-															},
-															"Container_Path": {
-																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
-																"type": "Expression"
-															}
-														}
-													},
-													"enableLogging": false,
-													"storeSettings": {
-														"type": "AzureBlobFSReadSettings",
-														"recursive": true,
-														"enablePartitionDiscovery": false
-													}
-												}
 											}
 										]
 									}
@@ -310,7 +220,14 @@
 								{
 									"name": "Check if Table is Empty",
 									"type": "Lookup",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "Check if File exist In FullLoad",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -469,6 +386,104 @@
 										},
 										"firstRowOnly": true
 									}
+								},
+								{
+									"name": "Check if File exist In FullLoad",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Chekc if file exist in lake",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Delete Entity From lake New",
+												"type": "Delete",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+																"type": "Expression"
+															}
+														}
+													},
+													"enableLogging": false,
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"enablePartitionDiscovery": false
+													}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "Chekc if file exist in lake",
+									"type": "GetMetadata",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "GenericParquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container_Name": {
+													"value": "@pipeline().parameters.Lake_Container_Name",
+													"type": "Expression"
+												},
+												"Container_Path": {
+													"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)\n",
+													"type": "Expression"
+												}
+											}
+										},
+										"fieldList": [
+											"exists",
+											"itemName",
+											"itemType"
+										],
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										},
+										"formatSettings": {
+											"type": "ParquetReadSettings"
+										}
+									}
 								}
 							]
 						}
@@ -539,61 +554,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/GenricCSVRead')]",
 				"[concat(variables('factoryId'), '/datasets/OnpremSQLTable')]",
-				"[concat(variables('factoryId'), '/datasets/GenericParquet')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "GenericParquet",
-								"type": "DatasetReference",
-								"parameters": {
-									"Container_Name": "advbronzedatalake",
-									"Container_Path": "landing"
-								}
-							},
-							"fieldList": [
-								"exists",
-								"itemType"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "ParquetReadSettings"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"temp1": {
-						"type": "String"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/GenericParquet')]"
 			]
 		},
