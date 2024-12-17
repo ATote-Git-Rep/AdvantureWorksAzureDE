@@ -143,7 +143,10 @@
 														"value": "@concat(pipeline().parameters.Lake_File_Path, '/', item().Table_Name)",
 														"type": "Expression"
 													},
-													"File_name": "@item().Table_Name"
+													"File_name": {
+														"value": "@concat(item().Table_Name,'-',string(utcNow('yyyy-MM-dd')), '.parquet')",
+														"type": "Expression"
+													}
 												}
 											}
 										]
