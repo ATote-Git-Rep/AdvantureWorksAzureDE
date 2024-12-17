@@ -75,7 +75,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstrow'))",
+									"value": "@bool(0)",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
