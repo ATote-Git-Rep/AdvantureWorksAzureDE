@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "temp1",
 					"value": {
-						"value": "@string(utcNow('yyyy-MM-dd'))",
+						"value": "@concat(string(utcNow('yyyy-MM-dd')), '_',string(pipeline().RunId))",
 						"type": "Expression"
 					}
 				}
