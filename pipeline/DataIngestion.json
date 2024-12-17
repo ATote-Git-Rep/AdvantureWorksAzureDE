@@ -328,7 +328,7 @@
 							"type": "IfCondition",
 							"dependsOn": [
 								{
-									"activity": "Remove Entity Before Full Load_copy1",
+									"activity": "Chekc if file exist in lake",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -380,7 +380,7 @@
 							}
 						},
 						{
-							"name": "Remove Entity Before Full Load_copy1",
+							"name": "Chekc if file exist in lake",
 							"type": "GetMetadata",
 							"dependsOn": [],
 							"policy": {
