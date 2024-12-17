@@ -82,14 +82,7 @@
 									{
 										"name": "Ingest Entity Full Load",
 										"type": "Copy",
-										"dependsOn": [
-											{
-												"activity": "Delete Entity From lake",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
+										"dependsOn": [],
 										"policy": {
 											"timeout": "0.12:00:00",
 											"retry": 0,
@@ -156,41 +149,6 @@
 												}
 											}
 										]
-									},
-									{
-										"name": "Delete Entity From lake",
-										"type": "Delete",
-										"dependsOn": [],
-										"policy": {
-											"timeout": "0.12:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"dataset": {
-												"referenceName": "GenericParquet",
-												"type": "DatasetReference",
-												"parameters": {
-													"Container_Name": {
-														"value": "@pipeline().parameters.Lake_Container_Name",
-														"type": "Expression"
-													},
-													"Container_Path": {
-														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
-														"type": "Expression"
-													}
-												}
-											},
-											"enableLogging": false,
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											}
-										}
 									}
 								]
 							}
