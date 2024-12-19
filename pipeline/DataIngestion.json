@@ -74,8 +74,8 @@
 				}
 			},
 			{
-				"name": "Check Load Type",
-				"type": "IfCondition",
+				"name": "Ingest Each Entity",
+				"type": "ForEach",
 				"dependsOn": [
 					{
 						"activity": "ReadIngestionSheet",
@@ -84,46 +84,6 @@
 						]
 					}
 				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
-						"type": "Expression"
-					},
-					"ifFalseActivities": [
-						{
-							"name": "Ingest Each Entity in Delta Load",
-							"type": "ForEach",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"items": {
-									"value": "@activity('ReadIngestionSheet').output.value",
-									"type": "Expression"
-								}
-							}
-						}
-					],
-					"ifTrueActivities": [
-						{
-							"name": "Ingest Each Entity In Full Load Mode",
-							"type": "ForEach",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"items": {
-									"value": "@activity('ReadIngestionSheet').output.value",
-									"type": "Expression"
-								}
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "Ingest Each Entity",
-				"type": "ForEach",
-				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
