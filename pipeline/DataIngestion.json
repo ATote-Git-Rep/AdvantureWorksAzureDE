@@ -514,7 +514,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@activity('Chekck If Data Present for Ingestion Date').output.exists\n\n@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), activity('Chekck If Data Present for Ingestion Date').output.exists)",
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), activity('Chekck If Data Present for Ingestion Date').output.exists)",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
