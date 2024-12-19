@@ -824,7 +824,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Ingest Each Entity_copy1",
+							"name": "Ingest Each Entity In Full Load Mode",
 							"type": "ForEach",
 							"dependsOn": [],
 							"userProperties": [],
@@ -931,7 +931,7 @@
 										"type": "Lookup",
 										"dependsOn": [
 											{
-												"activity": "Check if File exist In FullLoad_copy1",
+												"activity": "Delete Entity From lake if exist",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -965,63 +965,7 @@
 										}
 									},
 									{
-										"name": "Check if File exist In FullLoad_copy1",
-										"type": "IfCondition",
-										"dependsOn": [
-											{
-												"activity": "Check if Entity Exist in Lake ",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"expression": {
-												"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
-												"type": "Expression"
-											},
-											"ifTrueActivities": [
-												{
-													"name": "Delete Entity From lake New_copy2",
-													"type": "Delete",
-													"dependsOn": [],
-													"policy": {
-														"timeout": "0.12:00:00",
-														"retry": 0,
-														"retryIntervalInSeconds": 30,
-														"secureOutput": false,
-														"secureInput": false
-													},
-													"userProperties": [],
-													"typeProperties": {
-														"dataset": {
-															"referenceName": "GenericParquet",
-															"type": "DatasetReference",
-															"parameters": {
-																"Container_Name": {
-																	"value": "@pipeline().parameters.Lake_Container_Name",
-																	"type": "Expression"
-																},
-																"Container_Path": {
-																	"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
-																	"type": "Expression"
-																}
-															}
-														},
-														"enableLogging": false,
-														"storeSettings": {
-															"type": "AzureBlobFSReadSettings",
-															"recursive": true,
-															"enablePartitionDiscovery": false
-														}
-													}
-												}
-											]
-										}
-									},
-									{
-										"name": "Check if Entity Exist in Lake ",
+										"name": "Check if Entity Exist in Lake",
 										"type": "GetMetadata",
 										"dependsOn": [],
 										"policy": {
@@ -1059,6 +1003,48 @@
 											},
 											"formatSettings": {
 												"type": "ParquetReadSettings"
+											}
+										}
+									},
+									{
+										"name": "Delete Entity From lake if exist",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Check if Entity Exist in Lake",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+														"type": "Expression"
+													}
+												}
+											},
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
 											}
 										}
 									}
