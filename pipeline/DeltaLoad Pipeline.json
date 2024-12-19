@@ -344,6 +344,9 @@
 			},
 			"Lake_File_Path": {
 				"type": "string"
+			},
+			"Ingestion_date": {
+				"type": "string"
 			}
 		},
 		"folder": {
