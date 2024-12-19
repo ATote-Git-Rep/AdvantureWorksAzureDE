@@ -9,7 +9,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(toLower(pipeline().parameters.Ingestion_type),'fullload')",
+						"value": "@equals(toLower(pipeline().parameters.MP_Ingestion_type),'fullload')",
 						"type": "Expression"
 					},
 					"ifTrueActivities": [
@@ -64,7 +64,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(toLower(pipeline().parameters.Ingestion_type),'delta')",
+						"value": "@equals(toLower(pipeline().parameters.MP_Ingestion_type),'delta')",
 						"type": "Expression"
 					},
 					"ifTrueActivities": [
