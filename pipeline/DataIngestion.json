@@ -588,6 +588,18 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Ingest Each Entity",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadIngestionSheet').output.value",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
