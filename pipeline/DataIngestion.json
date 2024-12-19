@@ -112,10 +112,12 @@
 		],
 		"parameters": {
 			"MP_Config_Container_Name": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "deconfig"
 			},
 			"MP_Config_File_Path": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "AdvantureWorksConfigs/ETL_Sheet_Input.csv"
 			},
 			"MP_Ingestion_date": {
 				"type": "string"
@@ -124,10 +126,12 @@
 				"type": "string"
 			},
 			"MP_Lake_Container_Name": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "advbronzedatalake"
 			},
 			"MP_Lake_File_Path": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "landing"
 			}
 		},
 		"variables": {
