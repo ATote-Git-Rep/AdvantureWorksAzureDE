@@ -11,19 +11,62 @@
 					"expression": {
 						"value": "@equals(toLower(pipeline().parameters.Ingestion_type),'fullload')",
 						"type": "Expression"
-					}
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute Full Load Pipe Line",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "FullLoad PipeLine",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
 				}
 			},
 			{
 				"name": "Load Type - Delta Load",
 				"type": "IfCondition",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Load Type - Full Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
 						"value": "@equals(toLower(pipeline().parameters.Ingestion_type),'delta')",
 						"type": "Expression"
-					}
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute Delta Load Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "DeltaLoad Pipeline",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
 				}
 			}
 		],
