@@ -1,0 +1,331 @@
+{
+	"name": "FullLoad PipeLine",
+	"properties": {
+		"activities": [
+			{
+				"name": "ReadIngestionSheet",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "GenricCSVRead",
+						"type": "DatasetReference",
+						"parameters": {
+							"Container_Name": {
+								"value": "@pipeline().parameters.Config_Container_Name",
+								"type": "Expression"
+							},
+							"Container_Path": {
+								"value": "@pipeline().parameters.Config_File_Path",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "FailEmail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
+					"body": {
+						"ADF_Name": "dafd",
+						"ADF_RunID": "asda",
+						"Error_Message": "asdad",
+						"PipelineID": "asdad"
+					}
+				}
+			},
+			{
+				"name": "Ingest Each Entity",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadIngestionSheet').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Entity FullLoad Copy Activity",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Check if Table is Empty For FullLoad",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty For FullLoad').output,'firstRow'))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Ingest Entity Full Load_copy1",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings",
+													"maxRowsPerFile": 100000
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "OnpremSQLTable",
+												"type": "DatasetReference",
+												"parameters": {
+													"SQLSchema": {
+														"value": "@item().Schema_Name",
+														"type": "Expression"
+													},
+													"SQLTablename": {
+														"value": "@item().Table_Name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/','Ingesion_date=',string(utcNow('yyyy-MM-dd')), '/' )",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "Check if Table is Empty For FullLoad",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Is Entity Exist Before Delete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "OnpremSQLTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"SQLSchema": "@item().Schema_Name",
+										"SQLTablename": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "Check if Entity Exist in Lake",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "GenericParquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"Container_Name": {
+											"value": "@pipeline().parameters.Lake_Container_Name",
+											"type": "Expression"
+										},
+										"Container_Path": {
+											"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)\n",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists",
+									"itemName",
+									"itemType"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							}
+						},
+						{
+							"name": "Is Entity Exist Before Delete",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Check if Entity Exist in Lake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), activity('Check if Entity Exist in Lake').output.exists)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Delete Entity From lake if exist",
+										"type": "Delete",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "GenericParquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"Container_Name": {
+														"value": "@pipeline().parameters.Lake_Container_Name",
+														"type": "Expression"
+													},
+													"Container_Path": {
+														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+														"type": "Expression"
+													}
+												}
+											},
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Data Ingestion"
+		},
+		"annotations": []
+	}
+}
