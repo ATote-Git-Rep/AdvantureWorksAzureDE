@@ -562,7 +562,14 @@
 			{
 				"name": "Check Load Type",
 				"type": "IfCondition",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
@@ -682,7 +689,7 @@
 										"type": "Lookup",
 										"dependsOn": [
 											{
-												"activity": "Check if Data  exist In Delta Load Date",
+												"activity": "Check if Data exist In Delta Load Date",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -721,7 +728,7 @@
 										}
 									},
 									{
-										"name": "Chekck if file exist in lake Delta_copy1",
+										"name": "Chekck If Data Present for Ingestion Date",
 										"type": "GetMetadata",
 										"dependsOn": [],
 										"policy": {
@@ -763,11 +770,11 @@
 										}
 									},
 									{
-										"name": "Check if Data  exist In Delta Load Date",
+										"name": "Check if Data exist In Delta Load Date",
 										"type": "IfCondition",
 										"dependsOn": [
 											{
-												"activity": "Chekck if file exist in lake Delta_copy1",
+												"activity": "Chekck If Data Present for Ingestion Date",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -776,12 +783,12 @@
 										"userProperties": [],
 										"typeProperties": {
 											"expression": {
-												"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
+												"value": "@activity('Chekck If Data Present for Ingestion Date').output.exists",
 												"type": "Expression"
 											},
 											"ifTrueActivities": [
 												{
-													"name": "Delete Entity From lake New_copy1_copy1",
+													"name": "Delete Data For Entity For Ingestion Date",
 													"type": "Delete",
 													"dependsOn": [],
 													"policy": {
