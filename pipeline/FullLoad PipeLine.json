@@ -325,16 +325,20 @@
 		],
 		"parameters": {
 			"Config_Container_Name": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "deconfig"
 			},
 			"Config_File_Path": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "AdvantureWorksConfigs/ETL_Sheet_Input.csv"
 			},
 			"Lake_Container_Name": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "advbronzedatalake"
 			},
 			"Lake_File_Path": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "landing"
 			}
 		},
 		"folder": {
