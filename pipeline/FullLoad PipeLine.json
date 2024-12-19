@@ -105,7 +105,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty For FullLoad').output,'firstRow'))",
+									"value": "@contains(activity('Check if Table is Empty For FullLoad').output,'firstRow')",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
@@ -277,7 +277,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), activity('Check if Entity Exist in Lake').output.exists)",
+									"value": "@activity('Check if Entity Exist in Lake').output.exists",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
