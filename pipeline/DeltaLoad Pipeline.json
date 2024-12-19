@@ -105,12 +105,12 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), contains(activity('Check if Table for Delta Load Is Empty').output,'firstRow'))",
+									"value": "@contains(activity('Check if Table for Delta Load Is Empty').output,'firstRow')",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
 									{
-										"name": "Ingest Entity Delta Load_copy1",
+										"name": "Ingest Entity Delta Load",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
@@ -286,7 +286,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), activity('Chekck If Data Present for Ingestion Date').output.exists)",
+									"value": "@activity('Chekck If Data Present for Ingestion Date').output.exists",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
