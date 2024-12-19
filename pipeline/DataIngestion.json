@@ -71,22 +71,22 @@
 			}
 		],
 		"parameters": {
-			"Config_Container_Name": {
+			"MP_Config_Container_Name": {
 				"type": "string"
 			},
-			"Config_File_Path": {
+			"MP_Config_File_Path": {
 				"type": "string"
 			},
-			"Ingestion_date": {
+			"MP_Ingestion_date": {
 				"type": "string"
 			},
-			"Ingestion_type": {
+			"MP_Ingestion_type": {
 				"type": "string"
 			},
-			"Lake_Container_Name": {
+			"MP_Lake_Container_Name": {
 				"type": "string"
 			},
-			"Lake_File_Path": {
+			"MP_Lake_File_Path": {
 				"type": "string"
 			}
 		},
