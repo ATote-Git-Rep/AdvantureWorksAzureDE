@@ -323,6 +323,14 @@
 				}
 			}
 		],
+		"parameters": {
+			"Config_Container_Name": {
+				"type": "string"
+			},
+			"Config_File_Path": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "Data Ingestion"
 		},
