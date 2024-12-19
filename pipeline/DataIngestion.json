@@ -835,11 +835,11 @@
 								},
 								"activities": [
 									{
-										"name": "FullLoad_copy1",
+										"name": "Entity FullLoad Copy Activity",
 										"type": "IfCondition",
 										"dependsOn": [
 											{
-												"activity": "Check if Table is Empty_copy1",
+												"activity": "Check if Table is Empty For FullLoad",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -848,7 +848,7 @@
 										"userProperties": [],
 										"typeProperties": {
 											"expression": {
-												"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstRow'))",
+												"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty For FullLoad').output,'firstRow'))",
 												"type": "Expression"
 											},
 											"ifTrueActivities": [
@@ -927,11 +927,11 @@
 										}
 									},
 									{
-										"name": "Check if Table is Empty_copy1",
+										"name": "Check if Table is Empty For FullLoad",
 										"type": "Lookup",
 										"dependsOn": [
 											{
-												"activity": "Delete Entity From lake if exist",
+												"activity": "Is Entity Exist Before Delete",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -1007,8 +1007,8 @@
 										}
 									},
 									{
-										"name": "Delete Entity From lake if exist",
-										"type": "Delete",
+										"name": "Is Entity Exist Before Delete",
+										"type": "IfCondition",
 										"dependsOn": [
 											{
 												"activity": "Check if Entity Exist in Lake",
@@ -1017,35 +1017,49 @@
 												]
 											}
 										],
-										"policy": {
-											"timeout": "0.12:00:00",
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
 										"userProperties": [],
 										"typeProperties": {
-											"dataset": {
-												"referenceName": "GenericParquet",
-												"type": "DatasetReference",
-												"parameters": {
-													"Container_Name": {
-														"value": "@pipeline().parameters.Lake_Container_Name",
-														"type": "Expression"
+											"expression": {
+												"value": "@activity('Check if Entity Exist in Lake').output.exists",
+												"type": "Expression"
+											},
+											"ifTrueActivities": [
+												{
+													"name": "Delete Entity From lake if exist",
+													"type": "Delete",
+													"dependsOn": [],
+													"policy": {
+														"timeout": "0.12:00:00",
+														"retry": 0,
+														"retryIntervalInSeconds": 30,
+														"secureOutput": false,
+														"secureInput": false
 													},
-													"Container_Path": {
-														"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
-														"type": "Expression"
+													"userProperties": [],
+													"typeProperties": {
+														"dataset": {
+															"referenceName": "GenericParquet",
+															"type": "DatasetReference",
+															"parameters": {
+																"Container_Name": {
+																	"value": "@pipeline().parameters.Lake_Container_Name",
+																	"type": "Expression"
+																},
+																"Container_Path": {
+																	"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+																	"type": "Expression"
+																}
+															}
+														},
+														"enableLogging": false,
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														}
 													}
 												}
-											},
-											"enableLogging": false,
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											}
+											]
 										}
 									}
 								]
