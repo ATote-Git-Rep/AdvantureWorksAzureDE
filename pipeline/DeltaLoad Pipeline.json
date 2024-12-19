@@ -1,0 +1,9 @@
+{
+	"name": "DeltaLoad Pipeline",
+	"properties": {
+		"folder": {
+			"name": "Data Ingestion"
+		},
+		"annotations": []
+	}
+}
