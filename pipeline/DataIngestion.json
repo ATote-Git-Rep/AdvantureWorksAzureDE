@@ -565,6 +565,10 @@
 				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
+						"type": "Expression"
+					},
 					"ifFalseActivities": [
 						{
 							"name": "Ingest Each Entity in Delta Load",
