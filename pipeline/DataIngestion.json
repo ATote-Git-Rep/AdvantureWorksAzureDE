@@ -292,7 +292,7 @@
 							"type": "Lookup",
 							"dependsOn": [
 								{
-									"activity": "Check if File exist In FullLoad_copy1",
+									"activity": "Check if File exist In Delta",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -471,7 +471,7 @@
 							}
 						},
 						{
-							"name": "Check if File exist In FullLoad_copy1",
+							"name": "Check if File exist In Delta",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
