@@ -329,6 +329,12 @@
 			},
 			"Config_File_Path": {
 				"type": "string"
+			},
+			"Lake_Container_Name": {
+				"type": "string"
+			},
+			"Lake_File_Path": {
+				"type": "string"
 			}
 		},
 		"folder": {
