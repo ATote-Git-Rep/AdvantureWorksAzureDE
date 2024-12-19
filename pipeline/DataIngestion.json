@@ -26,7 +26,25 @@
 									"referenceName": "FullLoad PipeLine",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"Config_Container_Name": {
+										"value": "@pipeline().parameters.MP_Config_Container_Name",
+										"type": "Expression"
+									},
+									"Config_File_Path": {
+										"value": "@pipeline().parameters.MP_Config_File_Path",
+										"type": "Expression"
+									},
+									"Lake_Container_Name": {
+										"value": "@pipeline().parameters.MP_Lake_Container_Name",
+										"type": "Expression"
+									},
+									"Lake_File_Path": {
+										"value": "@pipeline().parameters.MP_Lake_File_Path",
+										"type": "Expression"
+									}
+								}
 							}
 						}
 					]
