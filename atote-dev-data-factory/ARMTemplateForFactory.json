@@ -67,6 +67,163 @@
 			"properties": {
 				"activities": [
 					{
+						"name": "Load Type - Full Load",
+						"type": "IfCondition",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(toLower(pipeline().parameters.MP_Ingestion_type),'fullload')",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute Full Load Pipe Line",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "FullLoad PipeLine",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"Config_Container_Name": {
+												"value": "@pipeline().parameters.MP_Config_Container_Name",
+												"type": "Expression"
+											},
+											"Config_File_Path": {
+												"value": "@pipeline().parameters.MP_Config_File_Path",
+												"type": "Expression"
+											},
+											"Lake_Container_Name": {
+												"value": "@pipeline().parameters.MP_Lake_Container_Name",
+												"type": "Expression"
+											},
+											"Lake_File_Path": {
+												"value": "@pipeline().parameters.MP_Lake_File_Path",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Load Type - Delta Load",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Load Type - Full Load",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(toLower(pipeline().parameters.MP_Ingestion_type),'delta')",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Execute Delta Load Pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "DeltaLoad Pipeline",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"Config_Container_Name": {
+												"value": "@pipeline().parameters.MP_Config_Container_Name",
+												"type": "Expression"
+											},
+											"Config_File_Path": {
+												"value": "@pipeline().parameters.MP_Config_File_Path",
+												"type": "Expression"
+											},
+											"Lake_Container_Name": {
+												"value": "@pipeline().parameters.MP_Lake_Container_Name",
+												"type": "Expression"
+											},
+											"Lake_File_Path": {
+												"value": "@pipeline().parameters.MP_Lake_File_Path",
+												"type": "Expression"
+											},
+											"Ingestion_date": {
+												"value": "@pipeline().parameters.MP_Ingestion_date",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"MP_Config_Container_Name": {
+						"type": "string",
+						"defaultValue": "deconfig"
+					},
+					"MP_Config_File_Path": {
+						"type": "string",
+						"defaultValue": "AdvantureWorksConfigs/ETL_Sheet_Input.csv"
+					},
+					"MP_Ingestion_date": {
+						"type": "string"
+					},
+					"MP_Ingestion_type": {
+						"type": "string"
+					},
+					"MP_Lake_Container_Name": {
+						"type": "string",
+						"defaultValue": "advbronzedatalake"
+					},
+					"MP_Lake_File_Path": {
+						"type": "string",
+						"defaultValue": "landing"
+					}
+				},
+				"variables": {
+					"tes123": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Data Ingestion"
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-12-13T10:23:02Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/FullLoad PipeLine')]",
+				"[concat(variables('factoryId'), '/pipelines/DeltaLoad Pipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DeltaLoad Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
 						"name": "ReadIngestionSheet",
 						"type": "Lookup",
 						"dependsOn": [],
@@ -108,6 +265,37 @@
 						}
 					},
 					{
+						"name": "FailEmail",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ReadIngestionSheet",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
+							"body": {
+								"ADF_Name": "dafd",
+								"ADF_RunID": "asda",
+								"Error_Message": "asdad",
+								"PipelineID": "asdad"
+							}
+						}
+					},
+					{
 						"name": "Ingest Each Entity",
 						"type": "ForEach",
 						"dependsOn": [
@@ -126,11 +314,11 @@
 							},
 							"activities": [
 								{
-									"name": "FullLoad",
+									"name": "Delta Copy To Bronze Layer",
 									"type": "IfCondition",
 									"dependsOn": [
 										{
-											"activity": "Check if Table is Empty",
+											"activity": "Check if Table for Delta Load Is Empty",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -139,137 +327,7 @@
 									"userProperties": [],
 									"typeProperties": {
 										"expression": {
-											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), contains(activity('Check if Table is Empty').output,'firstRow'))",
-											"type": "Expression"
-										},
-										"ifTrueActivities": [
-											{
-												"name": "Ingest Entity Full Load",
-												"type": "Copy",
-												"dependsOn": [],
-												"policy": {
-													"timeout": "0.12:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
-													"secureOutput": false,
-													"secureInput": false
-												},
-												"userProperties": [],
-												"typeProperties": {
-													"source": {
-														"type": "SqlServerSource",
-														"queryTimeout": "02:00:00",
-														"partitionOption": "None"
-													},
-													"sink": {
-														"type": "ParquetSink",
-														"storeSettings": {
-															"type": "AzureBlobFSWriteSettings"
-														},
-														"formatSettings": {
-															"type": "ParquetWriteSettings",
-															"maxRowsPerFile": 100000
-														}
-													},
-													"enableStaging": false,
-													"translator": {
-														"type": "TabularTranslator",
-														"typeConversion": true,
-														"typeConversionSettings": {
-															"allowDataTruncation": true,
-															"treatBooleanAsNumber": false
-														}
-													}
-												},
-												"inputs": [
-													{
-														"referenceName": "OnpremSQLTable",
-														"type": "DatasetReference",
-														"parameters": {
-															"SQLSchema": {
-																"value": "@item().Schema_Name",
-																"type": "Expression"
-															},
-															"SQLTablename": {
-																"value": "@item().Table_Name",
-																"type": "Expression"
-															}
-														}
-													}
-												],
-												"outputs": [
-													{
-														"referenceName": "GenericParquet",
-														"type": "DatasetReference",
-														"parameters": {
-															"Container_Name": {
-																"value": "@pipeline().parameters.Lake_Container_Name",
-																"type": "Expression"
-															},
-															"Container_Path": {
-																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/',string(utcNow('yyyy-MM-dd')), '/' )",
-																"type": "Expression"
-															}
-														}
-													}
-												]
-											}
-										]
-									}
-								},
-								{
-									"name": "Check if Table is Empty",
-									"type": "Lookup",
-									"dependsOn": [
-										{
-											"activity": "Check if File exist In FullLoad",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "SqlServerSource",
-											"queryTimeout": "02:00:00",
-											"partitionOption": "None"
-										},
-										"dataset": {
-											"referenceName": "OnpremSQLTable",
-											"type": "DatasetReference",
-											"parameters": {
-												"SQLSchema": "@item().Schema_Name",
-												"SQLTablename": {
-													"value": "@item().Table_Name",
-													"type": "Expression"
-												}
-											}
-										}
-									}
-								},
-								{
-									"name": "Delta If Condition",
-									"type": "IfCondition",
-									"dependsOn": [
-										{
-											"activity": "Check if Table is Empty Delta",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"userProperties": [],
-									"typeProperties": {
-										"expression": {
-											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'delta'), contains(activity('Check if Table is Empty Delta').output,'firstRow'))",
+											"value": "@contains(activity('Check if Table for Delta Load Is Empty').output,'firstRow')",
 											"type": "Expression"
 										},
 										"ifTrueActivities": [
@@ -341,7 +399,7 @@
 																"type": "Expression"
 															},
 															"Container_Path": {
-																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/', pipeline().parameters.Ingestion_date, '/' )",
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/', 'Ingesion_date=' ,string(pipeline().parameters.Ingestion_date), '/' )",
 																"type": "Expression"
 															}
 														}
@@ -352,9 +410,16 @@
 									}
 								},
 								{
-									"name": "Check if Table is Empty Delta",
+									"name": "Check if Table for Delta Load Is Empty",
 									"type": "Lookup",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "Check if Data exist In Delta Load Date",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -388,11 +453,53 @@
 									}
 								},
 								{
-									"name": "Check if File exist In FullLoad",
+									"name": "Chekck If Data Present for Ingestion Date",
+									"type": "GetMetadata",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "GenericParquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container_Name": {
+													"value": "@pipeline().parameters.Lake_Container_Name",
+													"type": "Expression"
+												},
+												"Container_Path": {
+													"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/','Ingesion_date=',string(pipeline().parameters.Ingestion_date))\n",
+													"type": "Expression"
+												}
+											}
+										},
+										"fieldList": [
+											"exists",
+											"itemName",
+											"itemType"
+										],
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										},
+										"formatSettings": {
+											"type": "ParquetReadSettings"
+										}
+									}
+								},
+								{
+									"name": "Check if Data exist In Delta Load Date",
 									"type": "IfCondition",
 									"dependsOn": [
 										{
-											"activity": "Chekc if file exist in lake",
+											"activity": "Chekck If Data Present for Ingestion Date",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -401,12 +508,12 @@
 									"userProperties": [],
 									"typeProperties": {
 										"expression": {
-											"value": "@and(equals(toLower(string(pipeline().parameters.Ingestion_type)), 'fullload'), true)",
+											"value": "@activity('Chekck If Data Present for Ingestion Date').output.exists",
 											"type": "Expression"
 										},
 										"ifTrueActivities": [
 											{
-												"name": "Delete Entity From lake New",
+												"name": "Delete Data For Entity For Ingestion Date",
 												"type": "Delete",
 												"dependsOn": [],
 												"policy": {
@@ -427,7 +534,7 @@
 																"type": "Expression"
 															},
 															"Container_Path": {
-																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/','Ingesion_date=',string(pipeline().parameters.Ingestion_date))\n",
 																"type": "Expression"
 															}
 														}
@@ -442,9 +549,270 @@
 											}
 										]
 									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"Config_Container_Name": {
+						"type": "string"
+					},
+					"Config_File_Path": {
+						"type": "string"
+					},
+					"Lake_Container_Name": {
+						"type": "string"
+					},
+					"Lake_File_Path": {
+						"type": "string"
+					},
+					"Ingestion_date": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Ingestion"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/GenricCSVRead')]",
+				"[concat(variables('factoryId'), '/datasets/OnpremSQLTable')]",
+				"[concat(variables('factoryId'), '/datasets/GenericParquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/FullLoad PipeLine')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ReadIngestionSheet",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "GenricCSVRead",
+								"type": "DatasetReference",
+								"parameters": {
+									"Container_Name": {
+										"value": "@pipeline().parameters.Config_Container_Name",
+										"type": "Expression"
+									},
+									"Container_Path": {
+										"value": "@pipeline().parameters.Config_File_Path",
+										"type": "Expression"
+									}
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "FailEmail",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ReadIngestionSheet",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
+							"body": {
+								"ADF_Name": "dafd",
+								"ADF_RunID": "asda",
+								"Error_Message": "asdad",
+								"PipelineID": "asdad"
+							}
+						}
+					},
+					{
+						"name": "Ingest Each Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ReadIngestionSheet",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('ReadIngestionSheet').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Entity FullLoad Copy Activity",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Check if Table is Empty For FullLoad",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@contains(activity('Check if Table is Empty For FullLoad').output,'firstRow')",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Ingest Entity Full Load_copy1",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings",
+															"maxRowsPerFile": 100000
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "OnpremSQLTable",
+														"type": "DatasetReference",
+														"parameters": {
+															"SQLSchema": {
+																"value": "@item().Schema_Name",
+																"type": "Expression"
+															},
+															"SQLTablename": {
+																"value": "@item().Table_Name",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name,'/','Ingesion_date=',string(utcNow('yyyy-MM-dd')), '/' )",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
 								},
 								{
-									"name": "Chekc if file exist in lake",
+									"name": "Check if Table is Empty For FullLoad",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Is Entity Exist Before Delete",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "OnpremSQLTable",
+											"type": "DatasetReference",
+											"parameters": {
+												"SQLSchema": "@item().Schema_Name",
+												"SQLTablename": {
+													"value": "@item().Table_Name",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								},
+								{
+									"name": "Check if Entity Exist in Lake",
 									"type": "GetMetadata",
 									"dependsOn": [],
 									"policy": {
@@ -484,39 +852,64 @@
 											"type": "ParquetReadSettings"
 										}
 									}
+								},
+								{
+									"name": "Is Entity Exist Before Delete",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Check if Entity Exist in Lake",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@activity('Check if Entity Exist in Lake').output.exists",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Delete Entity From lake if exist",
+												"type": "Delete",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "GenericParquet",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container_Name": {
+																"value": "@pipeline().parameters.Lake_Container_Name",
+																"type": "Expression"
+															},
+															"Container_Path": {
+																"value": "@concat(pipeline().parameters.Lake_File_Path, '/' ,item().Table_Name)",
+																"type": "Expression"
+															}
+														}
+													},
+													"enableLogging": false,
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"enablePartitionDiscovery": false
+													}
+												}
+											}
+										]
+									}
 								}
 							]
-						}
-					},
-					{
-						"name": "FailEmail",
-						"type": "WebActivity",
-						"dependsOn": [
-							{
-								"activity": "ReadIngestionSheet",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"method": "POST",
-							"headers": {},
-							"url": "https://prod-16.centralindia.logic.azure.com:443/workflows/78c6156915654bdf81f9e856a714dc75/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Z2h2l_VqJunF4Hb5QhaabJG2x9pJ-O0RzUNTCs4KWT4",
-							"body": {
-								"ADF_Name": "dafd",
-								"ADF_RunID": "asda",
-								"Error_Message": "asdad",
-								"PipelineID": "asdad"
-							}
 						}
 					}
 				],
@@ -530,12 +923,6 @@
 					"Config_File_Path": {
 						"type": "string"
 					},
-					"Ingestion_date": {
-						"type": "string"
-					},
-					"Ingestion_type": {
-						"type": "string"
-					},
 					"Lake_Container_Name": {
 						"type": "string"
 					},
@@ -543,13 +930,10 @@
 						"type": "string"
 					}
 				},
-				"variables": {
-					"tes123": {
-						"type": "String"
-					}
+				"folder": {
+					"name": "Data Ingestion"
 				},
-				"annotations": [],
-				"lastPublishTime": "2024-12-13T10:23:02Z"
+				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/GenricCSVRead')]",
