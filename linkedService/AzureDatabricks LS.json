@@ -1,0 +1,13 @@
+{
+	"name": "AzureDatabricks LS",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-3249081727790063.3.azuredatabricks.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/ac281707-b03d-40d4-b45c-3bd15efe5afe/resourceGroups/rg-new-central-india/providers/Microsoft.Databricks/workspaces/de-dev-workspace",
+			"existingClusterId": "1210-131254-pzzv65th"
+		}
+	}
+}
