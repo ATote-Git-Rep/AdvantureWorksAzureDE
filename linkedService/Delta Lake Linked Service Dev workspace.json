@@ -1,0 +1,12 @@
+{
+	"name": "Delta Lake Linked Service Dev workspace",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLake",
+		"typeProperties": {
+			"domain": "https://adb-3249081727790063.3.azuredatabricks.net",
+			"clusterId": "1210-131254-pzzv65th",
+			"workspaceResourceId": "/subscriptions/ac281707-b03d-40d4-b45c-3bd15efe5afe/resourceGroups/rg-new-central-india/providers/Microsoft.Databricks/workspaces/de-dev-workspace"
+		}
+	}
+}
