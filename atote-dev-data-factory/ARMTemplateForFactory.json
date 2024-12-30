@@ -121,7 +121,7 @@
 							{
 								"activity": "Load Type - Full Load",
 								"dependencyConditions": [
-									"Succeeded"
+									"Completed"
 								]
 							}
 						],
@@ -178,15 +178,15 @@
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "Load Type - Delta Load",
+								"activity": "ReadIngestionSheet",
 								"dependencyConditions": [
 									"Succeeded"
 								]
 							},
 							{
-								"activity": "ReadIngestionSheet",
+								"activity": "Load Type - Delta Load",
 								"dependencyConditions": [
-									"Succeeded"
+									"Completed"
 								]
 							}
 						],
