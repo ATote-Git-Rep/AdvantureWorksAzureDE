@@ -11,10 +11,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage_LS'"
 		},
-		"AzureDatabricksDeltaLake_LS_accessToken": {
-			"type": "secureString",
-			"metadata": "Secure string for 'accessToken' of 'AzureDatabricksDeltaLake_LS'"
-		},
 		"OnPremSQLServerGenric_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'OnPremSQLServerGenric'"
@@ -26,6 +22,10 @@
 		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://ucstorageaccatote.dfs.core.windows.net/"
+		},
+		"AzureDatabricks LS_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1210-131254-pzzv65th"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -85,9 +85,6 @@
 					"AzureDataLakeStorage_LS_accountKey": {
 						"value": "[parameters('AzureDataLakeStorage_LS_accountKey')]"
 					},
-					"AzureDatabricksDeltaLake_LS_accessToken": {
-						"value": "[parameters('AzureDatabricksDeltaLake_LS_accessToken')]"
-					},
 					"OnPremSQLServerGenric_password": {
 						"value": "[parameters('OnPremSQLServerGenric_password')]"
 					},
@@ -96,6 +93,9 @@
 					},
 					"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 						"value": "[parameters('AzureDataLakeStorage_LS_properties_typeProperties_url')]"
+					},
+					"AzureDatabricks LS_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('AzureDatabricks LS_properties_typeProperties_existingClusterId')]"
 					},
 					"AzureKeyVault1_properties_typeProperties_baseUrl": {
 						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"

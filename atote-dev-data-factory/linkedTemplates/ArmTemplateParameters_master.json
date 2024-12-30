@@ -8,9 +8,6 @@
 		"AzureDataLakeStorage_LS_accountKey": {
 			"value": ""
 		},
-		"AzureDatabricksDeltaLake_LS_accessToken": {
-			"value": ""
-		},
 		"OnPremSQLServerGenric_password": {
 			"value": ""
 		},
@@ -19,6 +16,9 @@
 		},
 		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
 			"value": "https://ucstorageaccatote.dfs.core.windows.net/"
+		},
+		"AzureDatabricks LS_properties_typeProperties_existingClusterId": {
+			"value": "1210-131254-pzzv65th"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://atotedekeyvault.vault.azure.net/"
