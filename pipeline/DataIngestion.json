@@ -108,6 +108,109 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Ingest Each Entity",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Load Type - Delta Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ReadIngestionSheet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadIngestionSheet').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Insert Each Entity",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/indradakre@yahoo.com/AdvantureWorksAzureDE_Databricks/BronzeIngestion/BronzeEntityIngestion",
+								"baseParameters": {
+									"Ingestion_Date": {
+										"value": "@pipeline().parameters.MP_Ingestion_date",
+										"type": "Expression"
+									},
+									"Load_Type": {
+										"value": "@pipeline().parameters.MP_Ingestion_type",
+										"type": "Expression"
+									},
+									"Table_Lake_Path": "abfss://advbronzedatalake@ucstorageaccatote.dfs.core.windows.net/landing/",
+									"Table_Name": {
+										"value": "@item().Table_Name",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks LS",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ReadIngestionSheet",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "GenricCSVRead",
+						"type": "DatasetReference",
+						"parameters": {
+							"Container_Name": {
+								"value": "@pipeline().parameters.MP_Config_Container_Name",
+								"type": "Expression"
+							},
+							"Container_Path": {
+								"value": "@pipeline().parameters.MP_Config_File_Path",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
 			}
 		],
 		"parameters": {
