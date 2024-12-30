@@ -110,7 +110,7 @@
 				}
 			},
 			{
-				"name": "Ingest Each Entity",
+				"name": "Bronze Ingestion",
 				"type": "ForEach",
 				"dependsOn": [
 					{
