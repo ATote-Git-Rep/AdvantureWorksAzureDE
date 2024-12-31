@@ -15,7 +15,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/indradakre@yahoo.com/AdvantureWorksAzureDE_Databricks/BronzeIngestion/BronzeEntityIngestion",
+					"notebookPath": "/de-Project/AdvantureWorksAzureDE_Databricks/ProcessData",
 					"baseParameters": {
 						"Ingestion_Date": "2024-12-30",
 						"Load_Type": "fullload",
