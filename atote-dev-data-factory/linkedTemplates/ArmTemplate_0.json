@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage_LS'"
 		},
+		"AzureDatabricks1_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'AzureDatabricks1'"
+		},
 		"OnPremSQLServerGenric_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'OnPremSQLServerGenric'"
@@ -30,6 +34,10 @@
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://atotedekeyvault.vault.azure.net/"
+		},
+		"AzureDatabricks1_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1210-131254-pzzv65th"
 		},
 		"OnPremSQLServerGenric_properties_typeProperties_server": {
 			"type": "string",
@@ -130,6 +138,66 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-3249081727790063.3.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDatabricks1_accessToken')]"
+					},
+					"existingClusterId": "[parameters('AzureDatabricks1_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/de-Project/AdvantureWorksAzureDE_Databricks/ProcessData",
+							"baseParameters": {
+								"Ingestion_Date": "2024-12-30",
+								"Load_Type": "fullload",
+								"Table_Lake_Path": "abfss://advbronzedatalake@ucstorageaccatote.dfs.core.windows.net/landing/",
+								"Table_Name": "Product"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks1",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDatabricks1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/GenericParquet')]",
@@ -1185,7 +1253,7 @@
 									},
 									"userProperties": [],
 									"typeProperties": {
-										"notebookPath": "/Users/indradakre@yahoo.com/AdvantureWorksAzureDE_Databricks/BronzeIngestion/BronzeEntityIngestion",
+										"notebookPath": "/de-Project/AdvantureWorksAzureDE_Databricks/Entity Ingestion From ADF",
 										"baseParameters": {
 											"Ingestion_Date": {
 												"value": "@pipeline().parameters.MP_Ingestion_date",
