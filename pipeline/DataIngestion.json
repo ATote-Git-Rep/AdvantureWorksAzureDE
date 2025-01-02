@@ -146,7 +146,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "/Users/indradakre@yahoo.com/AdvantureWorksAzureDE_Databricks/BronzeIngestion/BronzeEntityIngestion",
+								"notebookPath": "/de-Project/AdvantureWorksAzureDE_Databricks/Entity Ingestion From ADF",
 								"baseParameters": {
 									"Ingestion_Date": {
 										"value": "@pipeline().parameters.MP_Ingestion_date",
